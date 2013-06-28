@@ -148,7 +148,7 @@ func flush(buf *bytes.Buffer, packages map[string]bool, tableName string) {
 	// model end, write file
 	if _, err := buf.WriteString(modelTail); err != nil {
 		fmt.Printf("Buffer WriteString failed (%s)", err.Error())
-		os.Exit(-1)
+        panic(err)
 	}
 
 	// replace packege
@@ -165,14 +165,14 @@ func flush(buf *bytes.Buffer, packages map[string]bool, tableName string) {
 	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_EXCL|os.O_CREATE, 0644)
 	if err != nil {
 		fmt.Printf("OpenFile \"%s\" failed (%s)\n", fileName, err.Error())
-		os.Exit(-1)
+        panic(err)
 	}
 	defer file.Close()
 
 	file.WriteString(strings.Replace(buf.String(), "${need_package}", packageStr, 1))
 	if err = file.Sync(); err != nil {
 		fmt.Printf("File sync failed (%s)\n", err.Error())
-		os.Exit(-1)
+        panic(err)
 	}
 
 	buf.Reset()
@@ -250,6 +250,6 @@ func goFmt(fileName string) {
 	if err := cmd.Run(); err != nil {
 		fmt.Printf("%sbin/gofmt -w %s*.go failed (%s)\n", goRoot, fileName, err.Error())
 		fmt.Println(out.String())
-		os.Exit(-1)
+        panic("goFmt")
 	}
 }
