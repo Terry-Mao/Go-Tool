@@ -99,7 +99,7 @@ func main() {
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(strings.Replace(dbName, "*", "%", -1), strings.Replace(tbName, "*", "%", -1))
+	rows, err := stmt.Query(dbName, tbName)
 	if err != nil {
 		fmt.Printf("Query sql failed (%s)\n", err.Error())
 		return
