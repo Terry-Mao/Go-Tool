@@ -117,7 +117,7 @@ func main() {
 			// not same table
 			if preTable != "" {
 				// model end, write file
-				flush(buf, packages, tableName)
+				flush(buf, packages, preTable[strings.LastIndex(preTable, ".")+1:])
 			}
 
 			// new model
@@ -153,6 +153,7 @@ func flush(buf *bytes.Buffer, packages map[string]bool, tableName string) {
 
 	// replace packege
 	for k, _ := range packages {
+		delete(packages, k)
 		if k == "" {
 			continue
 		}
@@ -208,7 +209,7 @@ func goType(str, null string) string {
 		}
 	case "binary":
 		return "[]byte"
-	case "timestamp":
+	case "timestamp", "date":
 		return "time.Time"
 	case "bit":
 		if null == "YES" {
@@ -222,8 +223,22 @@ func goType(str, null string) string {
 		} else {
 			return "float64"
 		}
+	case "tinyint":
+		if null == "YES" {
+			return "sql.NullInt64"
+		} else {
+			return "int8"
+		}
+	case "bigint":
+		if null == "YES" {
+			return "sql.NullInt64"
+		} else {
+			return "int64"
+		}
+	case "tinyblob", "blob", "mediumblob", "longblob":
+		return "[]byte"
 	default:
-		panic("unsupport database column type")
+		panic(fmt.Sprintf("unsupport database column type : %s, contact the lazy author\n", str))
 	}
 }
 
