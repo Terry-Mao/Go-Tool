@@ -15,7 +15,7 @@ $ go get github.com/Terry-Mao/Go-Tool
 ```
 
 ## Usage
-
+### auto-model
 `auto-model` is a auto-generation struct tool for golang models which read `mysql` information_schema.columns
 ```
 $ go get github.com/go-sql-driver/mysql
