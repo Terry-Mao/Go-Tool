@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	getColumnInfoSQL = `SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, DATA_TYPE, IS_NULLABLE 
+	getColumnInfoSQL = `SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, DATA_TYPE, IS_NULLABLE, COLUMN_TYPE
     FROM COLUMNS WHERE TABLE_SCHEMA LIKE ? AND TABLE_NAME LIKE ?
     ORDER BY TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION`
 	modelHead   = "// auto-generate by Terry-Mao/auto-model\npackage model\nimport (\n${need_package})\ntype %s struct {\n"
@@ -58,6 +58,7 @@ func main() {
 		columnName  string
 		dataType    string
 		isNullable  string
+        columnType   string
 		buf         = &bytes.Buffer{}
 		packages    = map[string]bool{}
 	)
@@ -108,7 +109,7 @@ func main() {
 
 	// enum rows
 	for rows.Next() {
-		if err = rows.Scan(&tableSchema, &tableName, &columnName, &dataType, &isNullable); err != nil {
+		if err = rows.Scan(&tableSchema, &tableName, &columnName, &dataType, &isNullable, &columnType); err != nil {
 			fmt.Printf("Row scan failed (%s)\n", err.Error())
 			return
 		}
@@ -132,7 +133,7 @@ func main() {
 
 		// model field
 		packages[goPackage(dataType, isNullable)] = true
-		if _, err = buf.WriteString(fmt.Sprintf(modelField, firstUpper(columnName), goType(dataType, isNullable))); err != nil {
+		if _, err = buf.WriteString(fmt.Sprintf(modelField, firstUpper(columnName), goType(dataType, isNullable, columnType))); err != nil {
 			fmt.Printf("Buffer WriteString failed (%s)", err.Error())
 			return
 		}
@@ -193,16 +194,13 @@ func goPackage(str, null string) string {
 	return ""
 }
 
-func goType(str, null string) string {
+func goType(str, null, col string) string {
+    isNull := (null == "YES")
+    isUnsigned := (strings.Index(col, "unsigned") > 0)
+
 	switch str {
-	case "int":
-		if null == "YES" {
-			return "sql.NullInt64"
-		} else {
-			return "int"
-		}
 	case "varchar", "char":
-		if null == "YES" {
+		if isNull {
 			return "sql.String"
 		} else {
 			return "string"
@@ -212,28 +210,56 @@ func goType(str, null string) string {
 	case "timestamp", "date":
 		return "time.Time"
 	case "bit":
-		if null == "YES" {
+		if isNull {
 			return "sql.NullBool"
 		} else {
 			return "Bool"
 		}
 	case "decimal":
-		if null == "YES" {
+		if isNull {
 			return "sql.NullFloat64"
 		} else {
 			return "float64"
 		}
 	case "tinyint":
-		if null == "YES" {
+		if isNull {
 			return "sql.NullInt64"
 		} else {
-			return "int8"
+            if isUnsigned {
+			    return "uint8"
+            } else {
+			    return "int8"
+            }
+		}
+    case "smallint":
+		if isNull {
+			return "sql.NullInt64"
+		} else {
+            if isUnsigned {
+			    return "uint16"
+            } else {
+			    return "int16"
+            }
+		}
+	case "int":
+		if isNull {
+			return "sql.NullInt64"
+		} else {
+            if isUnsigned {
+			    return "uint"
+            } else {
+			    return "int"
+            }
 		}
 	case "bigint":
-		if null == "YES" {
+		if isNull {
 			return "sql.NullInt64"
 		} else {
-			return "int64"
+            if isUnsigned {
+                return "uint64"
+            } else {
+			    return "int64"
+            }
 		}
 	case "tinyblob", "blob", "mediumblob", "longblob":
 		return "[]byte"
