@@ -201,7 +201,7 @@ func goType(str, null, col string) string {
 	switch str {
 	case "varchar", "char":
 		if isNull {
-			return "sql.String"
+			return "sql.NullString"
 		} else {
 			return "string"
 		}
