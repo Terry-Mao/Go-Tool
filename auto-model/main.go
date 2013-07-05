@@ -58,7 +58,7 @@ func main() {
 		columnName  string
 		dataType    string
 		isNullable  string
-        columnType   string
+		columnType  string
 		buf         = &bytes.Buffer{}
 		packages    = map[string]bool{}
 	)
@@ -195,13 +195,13 @@ func goPackage(str, null string) string {
 }
 
 func goType(str, null, col string) string {
-    isNull := (null == "YES")
-    isUnsigned := (strings.Index(col, "unsigned") > 0)
+	isNull := (null == "YES")
+	isUnsigned := (strings.Index(col, "unsigned") > 0)
 
 	switch str {
 	case "varchar", "char":
 		if isNull {
-			return "sql.NullString"
+			return "sql.String"
 		} else {
 			return "string"
 		}
@@ -225,41 +225,41 @@ func goType(str, null, col string) string {
 		if isNull {
 			return "sql.NullInt64"
 		} else {
-            if isUnsigned {
-			    return "uint8"
-            } else {
-			    return "int8"
-            }
+			if isUnsigned {
+				return "uint8"
+			} else {
+				return "int8"
+			}
 		}
-    case "smallint":
+	case "smallint":
 		if isNull {
 			return "sql.NullInt64"
 		} else {
-            if isUnsigned {
-			    return "uint16"
-            } else {
-			    return "int16"
-            }
+			if isUnsigned {
+				return "uint16"
+			} else {
+				return "int16"
+			}
 		}
 	case "int":
 		if isNull {
 			return "sql.NullInt64"
 		} else {
-            if isUnsigned {
-			    return "uint"
-            } else {
-			    return "int"
-            }
+			if isUnsigned {
+				return "uint"
+			} else {
+				return "int"
+			}
 		}
 	case "bigint":
 		if isNull {
 			return "sql.NullInt64"
 		} else {
-            if isUnsigned {
-                return "uint64"
-            } else {
-			    return "int64"
-            }
+			if isUnsigned {
+				return "uint64"
+			} else {
+				return "int64"
+			}
 		}
 	case "tinyblob", "blob", "mediumblob", "longblob":
 		return "[]byte"
