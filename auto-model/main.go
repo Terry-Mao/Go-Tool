@@ -208,7 +208,11 @@ func goType(str, null, col string) string {
 	case "binary":
 		return "[]byte"
 	case "timestamp", "date":
-		return "time.Time"
+        if isNull {
+            return "sql.NullString"
+        } else {
+		    return "string"
+        }
 	case "bit":
 		if isNull {
 			return "sql.NullBool"
@@ -226,9 +230,9 @@ func goType(str, null, col string) string {
 			return "sql.NullInt64"
 		} else {
 			if isUnsigned {
-				return "uint8"
+				return "uint"
 			} else {
-				return "int8"
+				return "int"
 			}
 		}
 	case "smallint":
@@ -236,9 +240,9 @@ func goType(str, null, col string) string {
 			return "sql.NullInt64"
 		} else {
 			if isUnsigned {
-				return "uint16"
+				return "uint"
 			} else {
-				return "int16"
+				return "int"
 			}
 		}
 	case "int":
